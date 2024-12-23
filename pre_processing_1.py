@@ -3,7 +3,7 @@ import re
 
 def convert_to_tuples(input_string):
     # Use a regular expression to find all occurrences of a number followed by a letter
-    pattern = r'(\d+)([A-Za-z])'
+    pattern = r'(\d+)([A-Z])'
     
     # Find all matches and convert them into tuples (number, symbol)
     result = [(int(num), symbol) for num, symbol in re.findall(pattern, input_string)]
@@ -39,8 +39,11 @@ df.rename(columns={0:"Id",3:"Start_Index",5:"CIGAR",9:"Read",10:"Fred-Score"}, i
 df_copy = df
 for ind,row in df_copy.iterrows():
     new_str= process_CIGAR(row)
+    # break
     df.loc[ind,"Read"] = new_str
     # print(new_str)
     # break
-df = df[["Id","Start_Index","Read","Fred-Score"]]
+# df = df[["Id","Start_Index","Read","Fred-Score"]]
+df = df[["Start_Index","Read"]]
+df["Start_Index"] = df["Start_Index"]-1
 df.to_csv("processed_bam_data.csv",index = False)

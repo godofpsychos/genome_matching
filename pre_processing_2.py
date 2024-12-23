@@ -1,7 +1,7 @@
 import pandas as pd
 
-refrance_genome_file_path = '/home/tarunpal/Desktop/temp/Mayank_Project/EPI_ISL_402124-ORF1ab.fasta'
-processed_bam_file_path = '/home/tarunpal/Desktop/temp/Mayank_Project/processed_bam_data.csv'
+refrance_genome_file_path = 'EPI_ISL_402124-ORF1ab.fasta'
+processed_bam_file_path = 'processed_bam_data.csv'
 df = pd.read_csv(processed_bam_file_path)
 
 with open(refrance_genome_file_path, 'r') as file:
