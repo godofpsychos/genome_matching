@@ -1,0 +1,35 @@
+input:
+probility_error
+mismatch_count 
+total_count
+Index_in_refrance_genome(index)
+Total_number_varying_base
+
+output:
+Index_in_refrance_genome(index)
+p_value (formula)
+Identified_nucliotide
+
+plan:
+preprocessing
+BAM/SAM: starting index of each read and gnome
+cigar string: Match 3 Insersion 2 Deletion 2 Match 1
+aqsesdfg -> aqs__g
+
+
+processing
+index=9->{A:4,C:2,T:1,G:5},index_score:[]
+wqq ->[10,5,6]
+10
+0123456789
+easrdygokpxrtcyvijokxfcvgnjkm
+      aqswaqwer
+    aqswaqwer
+        aqswaqwer
+
+
+
+
+varing bases = processed_data
+new file format
+0 ref char, match , unmatch , [fred_prob]
