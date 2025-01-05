@@ -1,16 +1,14 @@
 #include <bits/stdc++.h>
 using namespace std;
+
 enum Column
 {
     Start_Index, // Start_Index can be represented by 1
-    Read,
+    Unmatch,
+    Match,
     Fred
 };
-enum ReadType
-{
-    Match,
-    Unmatch
-};
+
 std::string getSecondLine(const std::string &filePath)
 {
     std::ifstream file(filePath);
@@ -35,18 +33,18 @@ std::string getSecondLine(const std::string &filePath)
     file.close();
     return ""; // Return an empty string if the second line doesn't exist
 }
+
 double logSumExp(const std::vector<double> &x)
 {
     double max_val = *std::max_element(x.begin(), x.end());
     double sum = 0.0;
 
     for (double val : x)
-    {
         sum += exp(val - max_val);
-    }
 
     return max_val + log(sum);
 }
+
 double calculate_pval(vector<double> err_arr, int N, int K)
 {
     vector<double> pl(K), pl_prev(K);
@@ -72,97 +70,84 @@ double calculate_pval(vector<double> err_arr, int N, int K)
         pl_prev = pl;
         ln_pval_prev = ln_pval;
     }
+    // cout<<ln_pval<<"\n";
     return ln_pval;
 }
 
+double threshold = 0.05;
+
 int main()
 {
-    const string ref_gnome_file_path = "/home/tarun/Desktop/genome_matching/EPI_ISL_402124-ORF1ab.fasta",
-                 processed_data_csv_file_path = "/home/tarun/Desktop/genome_matching/processed_bam_data.csv";
-    string ref_gnome = getSecondLine(ref_gnome_file_path);
-    int len_ref_genome = ref_gnome.size();
-    vector<vector<int>> processedReadData(len_ref_genome, vector<int>(2, 0));
-    vector<vector<double>> colmwise_fred(len_ref_genome);
+    const string processed_data_csv_file_path = "/home/tarun/Desktop/genome_matching/bam_data_summary.csv";
+    // string ref_gnome = getSecondLine(ref_gnome_file_path);
+    // int len_ref_genome = ref_gnome.size();
+    // vector<vector<int>> processedReadData(len_ref_genome, vector<int>(2, 0));
+    // vector<vector<double>> colmwise_fred(len_ref_genome);
     std::ifstream file(processed_data_csv_file_path);
     vector<std::string> row;
     std::string line;
 
+    // Output file to store the results
+    ofstream outputFile("/home/tarun/Desktop/genome_matching/output_results.txt");
     if (!file.is_open())
     {
         std::cerr << "Could not open the file!" << std::endl;
         return 0;
     }
+
     if (!std::getline(file, line))
     {
         throw("Given Processed BAM File is Empty...!");
     }
-    for (int col = 0; col < len_ref_genome; col++)
+
+    while (std::getline(file, line))
     {
-        while (std::getline(file, line))
+        row.clear();
+        std::stringstream ss(line);
+        std::string cell;
+
+        // Split the line into columns
+        while (std::getline(ss, cell, '|'))
         {
-            row.clear();
-            std::stringstream ss(line);
-            std::string cell;
+            row.push_back(cell);
+        }
 
-            // Split the line into columns
-            while (std::getline(ss, cell, '|'))
+        // Process the row if it has sufficient columns
+        if (row.size() > 1)
+        {
+            int start_idx = std::stoi(row[Column::Start_Index], nullptr, 10),
+                match = row[Column::Match].size(),
+                unmatch = row[Column::Unmatch].size();
+
+            vector<double> fred_prob(55);
+            std::string fred_column = row[Column::Fred]; // The "Fred" column contains comma-separated values
+
+            std::stringstream fred_stream(fred_column);
+            std::string fred_value;
+
+            // Split the "Fred" column values by commas and convert to double
+            while (std::getline(fred_stream, fred_value, ','))
             {
-                row.push_back(cell);
+                // cout<<fred_value<<"\n";
+                double value = std::stod(fred_value); // Loosing precision here
+                // cout << std::fixed<<std::setprecision(30)<<value<<"\n";
+                fred_prob.push_back(value); // Store it in the vector
+                // break;
             }
 
-            // Process the row if it has sufficient columns
-            if (row.size() > 1)
-            {
-                // cout<<row[Column::Read]<<"\n";
-                int start_idx = std::stoi(row[Column::Start_Index], nullptr, 10);
-                const std::string &read = row[Column::Read];
-                vector<double> fred_values;
-                std::string fred_column = row[Column::Fred]; // The "Fred" column contains comma-separated values
-
-                std::stringstream fred_stream(fred_column);
-                std::string fred_value;
-
-                // Split the "Fred" column values by commas and convert to double
-                while (std::getline(fred_stream, fred_value, ','))
-                {
-                    cout<<fred_value<<"\n";
-                    // double value = std::stod(fred_value); // Convert the value to double
-                    // fred_values.push_back(value);         // Store it in the vector
-                }
-
-                // Only process if the read is non-empty and the start index is valid
-                if (start_idx >= 0 && !read.empty())
-                {
-                    int len_read = read.size();
-
-                    // Pre-allocate the size of processedReadData (if not already done) for efficiency
-                    for (int i = 0; i < len_read; ++i)
-                    {
-                        int position = start_idx + i;
-                        // Ensure the vector size is large enough
-                        if (position >= processedReadData.size())
-                        {
-                            processedReadData.resize(position + 1, std::vector<int>(2, 0)); // Resize with 2 counters: match & unmatch
-                        }
-
-                        if (ref_gnome[position] == read[i])
-                        {
-                            processedReadData[position][ReadType::Match]++; // match++
-                        }
-                        else
-                        {
-                            processedReadData[position][ReadType::Unmatch]++; // unmatch++
-                        }
-                        colmwise_fred[position].push_back(fred_values[i]);
-                    }
-                }
-            }
+            // Only process if the read is non-empty and the start index is valid
+            // cout<<match<<" "<<unmatch<<"\n";
+            double pval = calculate_pval(fred_prob, unmatch, match + unmatch);
+            // break;
+            // Write the index and pval to the output file
+            outputFile << std::fixed << std::setprecision(360) << start_idx << ", " << pval << "\n";
         }
     }
 
     file.close();
+    outputFile.close(); // Don't forget to close the output file!
 
-    cout << "Data Processed Sucessfully\n";
+    cout << "Data Processed Successfully\n";
 
     return 0;
 }
