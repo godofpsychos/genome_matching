@@ -6,7 +6,7 @@ This project is designed for Linux and requires Python 3 with the `pandas` and `
 
 1. Clone the repository:
     ```sh
-    git clone <repository_url>
+    git clone https://github.com/godofpsychos/genome_matching.git
     ```
 
 2. Navigate into the project directory:
