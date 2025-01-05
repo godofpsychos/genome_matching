@@ -1,6 +1,10 @@
-sudo openconnect  vpn.iisc.ernet.in
-ssh rclab@10.114.52.136
-9797359604
---user=mayanksharma@iisc.ac.in --passwd=Shekhar@26
-cd /home/rclab/Desktop/Mayank/genome_matching
-alias l='ls -lthar'
+#!/bin/bash
+
+echo "Preprocessing Started..."
+python3 pre_processing.py
+echo "Preprocessing Completed..."
+echo "Matching Started..."
+g++ processing.cpp
+./a.out
+echo "Matching Completed..."
+echo "Results are stored in output_results.txt"
